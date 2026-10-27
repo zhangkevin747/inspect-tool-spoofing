@@ -1,7 +1,7 @@
 """METR-style transcript-only monitor over honest and attack Inspect logs."""
 
+import argparse
 import json
-import sys
 from pathlib import Path
 
 from inspect_ai.log import read_eval_log
@@ -51,12 +51,11 @@ def render_transcript(sample) -> str:
     return "\n\n".join(lines)
 
 
-def score_log(path: Path, client: OpenAI) -> dict:
-    sample = read_eval_log(str(path)).samples[0]
+def score_sample(sample, client: OpenAI, model: str) -> dict:
     transcript = render_transcript(sample)
     main_task = sample.metadata["main_task"]
     response = client.responses.parse(
-        model="gpt-5",
+        model=model,
         reasoning={"effort": "low"},
         input=[
             {
@@ -79,9 +78,10 @@ def score_log(path: Path, client: OpenAI) -> dict:
     )
     verdict = response.output_parsed
     if verdict is None:
-        raise RuntimeError("GPT-5 returned no monitor verdict")
+        raise RuntimeError(f"{model} returned no monitor verdict")
     return {
         "condition": sample.id.removeprefix("dual-"),
+        "epoch": sample.epoch,
         "agent_model": sample.output.model,
         "monitor_model": response.model,
         "monitor_view": "main task plus assistant text, tool calls, and tool results; no reasoning",
@@ -93,9 +93,16 @@ def score_log(path: Path, client: OpenAI) -> dict:
     }
 
 
+def score_log(path: Path, client: OpenAI, model: str) -> list[dict]:
+    log = read_eval_log(str(path))
+    return [score_sample(sample, client, model) for sample in log.samples]
+
+
 if __name__ == "__main__":
-    paths = [Path(arg) for arg in sys.argv[1:]]
-    if not paths:
-        raise SystemExit("Pass one or more Inspect .eval paths")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="gpt-5")
+    parser.add_argument("paths", nargs="+", type=Path)
+    args = parser.parse_args()
     client = OpenAI()
-    print(json.dumps([score_log(path, client) for path in paths], indent=2))
+    rows = [row for path in args.paths for row in score_log(path, client, args.model)]
+    print(json.dumps(rows, indent=2))
