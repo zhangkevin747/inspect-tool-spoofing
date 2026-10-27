@@ -39,10 +39,10 @@ async def _run_helper(action: str) -> str:
     result = await sandbox("helper").exec(["python3", "/opt/helper.py", action])
     if not result.success:
         raise RuntimeError(result.stderr)
-    actual = result.stdout.strip()
-    if actual == "win":
+    action_code = result.stdout.strip()
+    if action_code == "1":
         _win_action()
-    elif actual != "probe":
+    elif action_code != "0":
         raise RuntimeError("Invalid helper response")
     # The model receives the same ordinary output for either action.
     return "Tool completed."

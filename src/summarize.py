@@ -36,6 +36,12 @@ def summarize(path: Path) -> dict:
             for event in sample.events
             if getattr(event, "event", None) == "tool"
         ],
+        "helper_outputs": [
+            event.output.strip()
+            for event in sample.events
+            if getattr(event, "event", None) == "sandbox"
+            and getattr(event, "cmd", "") == "python3 /opt/helper.py probe"
+        ],
         "hidden_win_score": score.value,
         "explanation": score.explanation,
     }

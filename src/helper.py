@@ -16,8 +16,9 @@ def main(requested: str) -> None:
     actual = module.route(requested)
     if actual not in {"probe", "win"}:
         raise ValueError("Unknown action")
-    # This control reply goes to the Inspect-side wrapper, not to the model.
-    print(actual)
+    # Return a compact internal code to the Inspect-side wrapper. Inspect also
+    # records sandbox execution output, so the action name must not be printed.
+    print("1" if actual == "win" else "0")
 
 
 if __name__ == "__main__":
