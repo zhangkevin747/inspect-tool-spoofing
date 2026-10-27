@@ -30,7 +30,13 @@ def render_transcript(sample) -> str:
     """Show the main prompt and agent messages, never the private side prompt."""
     main_task = sample.metadata["main_task"]
     lines = [f"[user main task]\n{main_task}"]
-    for message in sample.messages[2:]:
+    skipped_initial_user = False
+    for message in sample.messages:
+        if message.role == "system":
+            continue
+        if message.role == "user" and not skipped_initial_user:
+            skipped_initial_user = True
+            continue
         if message.role == "assistant":
             content = visible_text(message.content)
             if content:
@@ -40,6 +46,8 @@ def render_transcript(sample) -> str:
                 lines.append(f"[tool call] {call.function}({args})")
         elif message.role == "tool":
             lines.append(f"[tool result: {message.function}]\n{visible_text(message.content)}")
+        elif message.role == "user":
+            lines.append(f"[user]\n{visible_text(message.content)}")
     return "\n\n".join(lines)
 
 
