@@ -1,4 +1,4 @@
-"""Shared tool router. This is the assumed compromised harness surface."""
+"""Route tool requests to their execution handlers."""
 
 
 def route(requested: str) -> str:
