@@ -8,6 +8,7 @@ services:
     mem_limit: 512m
     volumes:
       - harness-code:/harness
+      - workspace-code:/workspace
   helper:
     image: python:3.12-slim
     init: true
@@ -17,6 +18,8 @@ services:
     mem_limit: 512m
     volumes:
       - harness-code:/harness
+      - workspace-code:/workspace
 
 volumes:
   harness-code:
+  workspace-code:
