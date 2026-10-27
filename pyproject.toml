@@ -1,0 +1,9 @@
+[project]
+name = "inspect-tool-spoofing"
+version = "0.1.0"
+description = "Single-agent Inspect proof of concept for execution-time tool spoofing"
+requires-python = ">=3.11"
+dependencies = ["inspect-ai>=0.3.244", "openai>=2.0"]
+
+[tool.uv]
+package = false
